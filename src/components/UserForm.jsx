@@ -5,21 +5,21 @@ import Button from "react-bootstrap/Button";
 import UserFormModal from "./UserFormModal";
 
 const UserForm = ({ onSubmit }) => {
-  const [userForm, setUserForm] = React.useState({
+  const defaultUserFormValues = {
     username: {
       value: "",
       valid: false,
-      touched: false
+      touched: false,
     },
     age: {
       value: "",
       valid: false,
-      touched: false
+      touched: false,
     },
-  });
-
+  };
+  const [userForm, setUserForm] = React.useState(defaultUserFormValues);
   const [showModal, setShowModal] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState("");
+  const [error, setError] = React.useState({});
 
   const changeHandler = (event) => {
     let isValid = false;
@@ -29,71 +29,85 @@ const UserForm = ({ onSubmit }) => {
     if (event.target.id === "age") {
       isValid = event.target.value > 0;
     }
-    
+
     setUserForm({
       ...userForm,
       [event.target.id]: {
         value: event.target.value,
         valid: isValid,
-        touched: true
+        touched: true,
       },
     });
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-  
+
     const { username, age } = userForm;
     const isUsernameValid = username.valid;
     const isAgeValid = age.valid;
-  
+
     if (!isUsernameValid && !isAgeValid) {
-      showErrorModal("Please enter a valid username and age (Non-empty values).");
+      showErrorModal(
+        "Invalid input",
+        "Please enter a valid username and age (Non-empty values)."
+      );
     } else if (!isUsernameValid) {
-      showErrorModal("Please enter a valid username.");
+      showErrorModal("Invalid username", "Please enter a valid username.");
     } else if (!isAgeValid) {
-      showErrorModal("Please enter a valid age (> 0).");
+      showErrorModal("Invalid age", "Please enter a valid age (> 0).");
     } else {
+      setUserForm(defaultUserFormValues);
       onSubmit({
         username: username.value,
         age: age.value,
       });
     }
   };
-  
-  const showErrorModal = (errorMessage) => {
-    setErrorMessage(errorMessage);
+
+  const showErrorModal = (errorTitle, errorMessage) => {
+    setError({
+      title: errorTitle,
+      message: errorMessage,
+    });
     setShowModal(true);
   };
 
   return (
     <>
-    <Form onSubmit={submitHandler}>
-      <Form.Group className="mb-3" controlId="username">
-        <Form.Label>Username</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="Enter username"
-          onChange={changeHandler}
-          isInvalid={!userForm.username.valid && userForm.username.touched}
-          isValid={userForm.username.valid && userForm.username.touched}
-        />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="age">
-        <Form.Label>Age (Years)</Form.Label>
-        <Form.Control
-          type="number"
-          placeholder="Enter age"
-          onChange={changeHandler}
-          isInvalid={!userForm.age.valid && userForm.age.touched}
-          isValid={userForm.age.valid && userForm.age.touched}
-        />
-      </Form.Group>
-      <Button variant="primary" type="submit">
-        Add User
-      </Button>
-    </Form>
-    <UserFormModal show={showModal} setShow={setShowModal} errorMessage={errorMessage} />
+      <Form onSubmit={submitHandler}>
+        <Form.Group className="mb-3" controlId="username">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter username"
+            value={userForm.username.value}
+            onChange={changeHandler}
+            isInvalid={!userForm.username.valid && userForm.username.touched}
+            isValid={userForm.username.valid && userForm.username.touched}
+          />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="age">
+          <Form.Label>Age (Years)</Form.Label>
+          <Form.Control
+            type="number"
+            placeholder="Enter age"
+            value={userForm.age.value}
+            onChange={changeHandler}
+            isInvalid={!userForm.age.valid && userForm.age.touched}
+            isValid={userForm.age.valid && userForm.age.touched}
+          />
+        </Form.Group>
+        <Button variant="primary" type="submit">
+          Add User
+        </Button>
+      </Form>
+      <UserFormModal
+        show={showModal}
+        setShow={setShowModal}
+        title={error.title}
+        message={error.message}
+      />
     </>
   );
 };
